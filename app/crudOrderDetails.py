@@ -1,12 +1,16 @@
 from flask import Flask, request, jsonify
-import Util.bd as bd
+from app.Util.bd import create_connection
 
 app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return "API para gerenciamento de detalhes de pedidos"
 
 @app.route('/order-details', methods=['POST'])
 def create_order_detail():
     data = request.get_json()
-    conn = bd.create_connection()
+    conn = create_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -28,7 +32,7 @@ def create_order_detail():
 
 @app.route('/order-details/<int:order_id>/<int:product_id>', methods=['GET'])
 def read_order_detail(order_id, product_id):
-    conn = bd.create_connection()
+    conn = create_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("""
@@ -57,7 +61,7 @@ def read_order_detail(order_id, product_id):
 @app.route('/order-details/<int:order_id>/<int:product_id>', methods=['PUT'])
 def update_order_detail(order_id, product_id):
     data = request.get_json()
-    conn = bd.create_connection()
+    conn = create_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -80,7 +84,7 @@ def update_order_detail(order_id, product_id):
 
 @app.route('/order-details/<int:order_id>/<int:product_id>', methods=['DELETE'])
 def delete_order_detail(order_id, product_id):
-    conn = bd.create_connection()
+    conn = create_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("""
@@ -99,7 +103,7 @@ def delete_order_detail(order_id, product_id):
 # Endpoint adicional para listar todos os detalhes de um pedido específico
 @app.route('/order-details/<int:order_id>', methods=['GET'])
 def list_order_details(order_id):
-    conn = bd.create_connection()
+    conn = create_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("""

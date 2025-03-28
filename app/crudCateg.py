@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-import Util.bd as bd
+from Util.bd import create_connection
 import base64
 
 app = Flask(__name__)
@@ -7,7 +7,7 @@ app = Flask(__name__)
 @app.route('/categories', methods=['POST'])
 def create_category():
     data = request.get_json()
-    conn = bd.create_connection()
+    conn = create_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -28,7 +28,7 @@ def create_category():
 
 @app.route('/categories/<int:category_id>', methods=['GET'])
 def read_category(category_id):
-    conn = bd.create_connection()
+    conn = create_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT * FROM categories WHERE category_id = %s", (category_id,))
@@ -50,7 +50,7 @@ def read_category(category_id):
 @app.route('/categories/<int:category_id>', methods=['PUT'])
 def update_category(category_id):
     data = request.get_json()
-    conn = bd.create_connection()
+    conn = create_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -72,7 +72,7 @@ def update_category(category_id):
 
 @app.route('/categories/<int:category_id>', methods=['DELETE'])
 def delete_category(category_id):
-    conn = bd.create_connection()
+    conn = create_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("DELETE FROM categories WHERE category_id = %s", (category_id,))

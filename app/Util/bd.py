@@ -1,7 +1,13 @@
 import psycopg2
 from psycopg2 import OperationalError
 import yaml
-with open('Util/paramsBD.yml', 'r') as config_file:
+import os
+
+# Obter o caminho absoluto usando o diretório atual do script
+current_dir = os.path.dirname(os.path.abspath(__file__))
+config_path = os.path.join(current_dir, 'paramsBD.yml')
+
+with open(config_path, 'r') as config_file:
     config = yaml.safe_load(config_file)
 
 def create_connection():
