@@ -31,7 +31,7 @@ CREATE TABLE aluno (
     telefone_responsavel VARCHAR(20),
     email_responsavel VARCHAR(100),
     informacoes_adicionais TEXT,
-    endereco VARCHAR(255),  -- Adicionada a coluna endereco
+    endereco VARCHAR(255),
     cidade VARCHAR(100),
     estado VARCHAR(100),
     cep VARCHAR(20),
