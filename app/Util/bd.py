@@ -13,10 +13,10 @@ with open(config_path, 'r') as config_file:
 def create_connection():
     """
     Create a connection to the PostgreSQL database.
-    :return: Connection object or None
+    :return: Connection object or raises an exception
     """
-    connection = None
     try:
+        print(f"Attempting to connect to database: {config['db_name']} at {config['db_host']}:{config['db_port']}")
         connection = psycopg2.connect(
             database=config['db_name'],
             user=config['db_user'],
@@ -25,9 +25,11 @@ def create_connection():
             port=config['db_port'],
         )
         print("Connection to PostgreSQL DB successful")
+        return connection
     except OperationalError as e:
-        print(f"The error '{e}' occurred")
-    return connection
+        print(f"Database connection failed: {e}")
+        print(f"Connection details: host={config['db_host']}, port={config['db_port']}, database={config['db_name']}, user={config['db_user']}")
+        raise e
 
 # Example usage:
 # connection = create_connection("your_db_name", "your_db_user", "your_db_password", "your_db_host", "your_db_port")

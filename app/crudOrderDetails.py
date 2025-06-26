@@ -1,13 +1,45 @@
-from flask import Flask, request, jsonify
+from flask import Blueprint, request, jsonify
 from app.Util.bd import create_connection
+from flasgger import swag_from
 
-app = Flask(__name__)
+app = Blueprint('order_details', __name__)
 
 @app.route('/')
 def index():
     return "API para gerenciamento de detalhes de pedidos"
 
 @app.route('/order-details', methods=['POST'])
+@swag_from({
+    'tags': ['Detalhes do Pedido'],
+    'description': 'Cria um novo detalhe de pedido.',
+    'parameters': [{
+        'name': 'body',
+        'in': 'body',
+        'required': True,
+        'schema': {
+            'type': 'object',
+            'properties': {
+                'order_id': {'type': 'integer', 'description': 'ID do pedido'},
+                'product_id': {'type': 'integer', 'description': 'ID do produto'},
+                'unit_price': {'type': 'number', 'description': 'Preço unitário'},
+                'quantity': {'type': 'integer', 'description': 'Quantidade'},
+                'discount': {'type': 'number', 'description': 'Desconto aplicado (0.0 a 1.0)'}
+            },
+            'required': ['order_id', 'product_id', 'unit_price', 'quantity'],
+            'example': {
+                'order_id': 1,
+                'product_id': 10,
+                'unit_price': 29.99,
+                'quantity': 2,
+                'discount': 0.1
+            }
+        }
+    }],
+    'responses': {
+        201: {'description': 'Detalhe do pedido criado com sucesso'},
+        400: {'description': 'Erro na requisição'}
+    }
+})
 def create_order_detail():
     data = request.get_json()
     conn = create_connection()
@@ -30,7 +62,51 @@ def create_order_detail():
         cursor.close()
         conn.close()
 
+@app.route('/order-details', methods=['GET'])
+def get_order_details():
+    conn = create_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM order_details")
+    order_details = cursor.fetchall()
+    return jsonify(order_details), 200
+
 @app.route('/order-details/<int:order_id>/<int:product_id>', methods=['GET'])
+@swag_from({
+    'tags': ['Detalhes do Pedido'],
+    'description': 'Busca um detalhe de pedido específico.',
+    'parameters': [
+        {
+            'name': 'order_id',
+            'in': 'path',
+            'required': True,
+            'type': 'integer',
+            'description': 'ID do pedido'
+        },
+        {
+            'name': 'product_id',
+            'in': 'path',
+            'required': True,
+            'type': 'integer',
+            'description': 'ID do produto'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Dados do detalhe do pedido',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'order_id': {'type': 'integer'},
+                    'product_id': {'type': 'integer'},
+                    'unit_price': {'type': 'number'},
+                    'quantity': {'type': 'integer'},
+                    'discount': {'type': 'number'}
+                }
+            }
+        },
+        404: {'description': 'Detalhe do pedido não encontrado'}
+    }
+})
 def read_order_detail(order_id, product_id):
     conn = create_connection()
     cursor = conn.cursor()
@@ -59,6 +135,49 @@ def read_order_detail(order_id, product_id):
         conn.close()
 
 @app.route('/order-details/<int:order_id>/<int:product_id>', methods=['PUT'])
+@swag_from({
+    'tags': ['Detalhes do Pedido'],
+    'description': 'Atualiza um detalhe de pedido.',
+    'parameters': [
+        {
+            'name': 'order_id',
+            'in': 'path',
+            'required': True,
+            'type': 'integer',
+            'description': 'ID do pedido'
+        },
+        {
+            'name': 'product_id',
+            'in': 'path',
+            'required': True,
+            'type': 'integer',
+            'description': 'ID do produto'
+        },
+        {
+            'name': 'body',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'unit_price': {'type': 'number'},
+                    'quantity': {'type': 'integer'},
+                    'discount': {'type': 'number'}
+                },
+                'required': ['unit_price', 'quantity'],
+                'example': {
+                    'unit_price': 35.99,
+                    'quantity': 3,
+                    'discount': 0.05
+                }
+            }
+        }
+    ],
+    'responses': {
+        200: {'description': 'Detalhe do pedido atualizado com sucesso'},
+        400: {'description': 'Erro na requisição'}
+    }
+})
 def update_order_detail(order_id, product_id):
     data = request.get_json()
     conn = create_connection()
@@ -83,6 +202,30 @@ def update_order_detail(order_id, product_id):
         conn.close()
 
 @app.route('/order-details/<int:order_id>/<int:product_id>', methods=['DELETE'])
+@swag_from({
+    'tags': ['Detalhes do Pedido'],
+    'description': 'Remove um detalhe de pedido.',
+    'parameters': [
+        {
+            'name': 'order_id',
+            'in': 'path',
+            'required': True,
+            'type': 'integer',
+            'description': 'ID do pedido'
+        },
+        {
+            'name': 'product_id',
+            'in': 'path',
+            'required': True,
+            'type': 'integer',
+            'description': 'ID do produto'
+        }
+    ],
+    'responses': {
+        200: {'description': 'Detalhe do pedido deletado com sucesso'},
+        400: {'description': 'Erro na requisição'}
+    }
+})
 def delete_order_detail(order_id, product_id):
     conn = create_connection()
     cursor = conn.cursor()
@@ -102,6 +245,36 @@ def delete_order_detail(order_id, product_id):
 
 # Endpoint adicional para listar todos os detalhes de um pedido específico
 @app.route('/order-details/<int:order_id>', methods=['GET'])
+@swag_from({
+    'tags': ['Detalhes do Pedido'],
+    'description': 'Lista todos os detalhes de um pedido específico.',
+    'parameters': [{
+        'name': 'order_id',
+        'in': 'path',
+        'required': True,
+        'type': 'integer',
+        'description': 'ID do pedido'
+    }],
+    'responses': {
+        200: {
+            'description': 'Lista de detalhes do pedido',
+            'schema': {
+                'type': 'array',
+                'items': {
+                    'type': 'object',
+                    'properties': {
+                        'order_id': {'type': 'integer'},
+                        'product_id': {'type': 'integer'},
+                        'unit_price': {'type': 'number'},
+                        'quantity': {'type': 'integer'},
+                        'discount': {'type': 'number'}
+                    }
+                }
+            }
+        },
+        404: {'description': 'Nenhum detalhe encontrado para este pedido'}
+    }
+})
 def list_order_details(order_id):
     conn = create_connection()
     cursor = conn.cursor()
@@ -129,5 +302,4 @@ def list_order_details(order_id):
         cursor.close()
         conn.close()
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000) 
+ 

@@ -1,15 +1,17 @@
 services:
   db:
-    build:
-      context: .
-      dockerfile: dockerfile
-    volumes:
-      - db_data:/var/lib/postgresql/data
-    networks:
-      - app-network
-      - monitoring_network
+    build: ./InfraBD
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: faat
+      POSTGRES_PASSWORD: faat
+      POSTGRES_DB: northwind
     ports:
       - "3001:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - monitoring_network
 
   api:
     build:

@@ -1,9 +1,47 @@
 from flask import Blueprint, request, jsonify
 from app.Util.bd import create_connection
+from flasgger import swag_from
 
 app = Blueprint('alunos', __name__)
 
 @app.route('/alunos', methods=['POST'])
+@swag_from({
+    'tags': ['Alunos'],
+    'description': 'Cria um novo aluno.',
+    'parameters': [{
+        'name': 'body',
+        'in': 'body',
+        'required': True,
+        'schema': {
+            'type': 'object',
+            'properties': {
+                'aluno_id': {'type': 'string', 'description': 'ID único do aluno'},
+                'nome': {'type': 'string', 'description': 'Nome completo do aluno'},
+                'endereco': {'type': 'string', 'description': 'Endereço do aluno'},
+                'cidade': {'type': 'string', 'description': 'Cidade do aluno'},
+                'estado': {'type': 'string', 'description': 'Estado do aluno'},
+                'cep': {'type': 'string', 'description': 'CEP do aluno'},
+                'pais': {'type': 'string', 'description': 'País do aluno'},
+                'telefone': {'type': 'string', 'description': 'Telefone do aluno'}
+            },
+            'required': ['aluno_id', 'nome'],
+            'example': {
+                'aluno_id': 'ALU001',
+                'nome': 'João Silva',
+                'endereco': 'Rua das Flores, 123',
+                'cidade': 'São Paulo',
+                'estado': 'SP',
+                'cep': '01234-567',
+                'pais': 'Brasil',
+                'telefone': '(11) 99999-9999'
+            }
+        }
+    }],
+    'responses': {
+        201: {'description': 'Aluno criado com sucesso'},
+        400: {'description': 'Erro na requisição'}
+    }
+})
 def create_aluno():
     data = request.get_json()
     conn = create_connection()
@@ -27,6 +65,36 @@ def create_aluno():
         conn.close()
 
 @app.route('/alunos/<string:aluno_id>', methods=['GET'])
+@swag_from({
+    'tags': ['Alunos'],
+    'description': 'Busca um aluno pelo ID.',
+    'parameters': [{
+        'name': 'aluno_id',
+        'in': 'path',
+        'required': True,
+        'type': 'string',
+        'description': 'ID do aluno'
+    }],
+    'responses': {
+        200: {
+            'description': 'Dados do aluno',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'aluno_id': {'type': 'string'},
+                    'nome': {'type': 'string'},
+                    'endereco': {'type': 'string'},
+                    'cidade': {'type': 'string'},
+                    'estado': {'type': 'string'},
+                    'cep': {'type': 'string'},
+                    'pais': {'type': 'string'},
+                    'telefone': {'type': 'string'}
+                }
+            }
+        },
+        404: {'description': 'Aluno não encontrado'}
+    }
+})
 def read_aluno(aluno_id):
     conn = create_connection()
     cursor = conn.cursor()
@@ -52,6 +120,31 @@ def read_aluno(aluno_id):
         conn.close()
 
 @app.route('/alunos', methods=['GET'])
+@swag_from({
+    'tags': ['Alunos'],
+    'description': 'Lista todos os alunos cadastrados.',
+    'responses': {
+        200: {
+            'description': 'Lista de alunos',
+            'schema': {
+                'type': 'array',
+                'items': {
+                    'type': 'object',
+                    'properties': {
+                        'aluno_id': {'type': 'string'},
+                        'nome': {'type': 'string'},
+                        'endereco': {'type': 'string'},
+                        'cidade': {'type': 'string'},
+                        'estado': {'type': 'string'},
+                        'cep': {'type': 'string'},
+                        'pais': {'type': 'string'},
+                        'telefone': {'type': 'string'}
+                    }
+                }
+            }
+        }
+    }
+})
 def read_all_alunos():
     conn = create_connection()
     cursor = conn.cursor()
@@ -80,6 +173,51 @@ def read_all_alunos():
         conn.close()
 
 @app.route('/alunos/<string:aluno_id>', methods=['PUT'])
+@swag_from({
+    'tags': ['Alunos'],
+    'description': 'Atualiza os dados de um aluno.',
+    'parameters': [
+        {
+            'name': 'aluno_id',
+            'in': 'path',
+            'required': True,
+            'type': 'string',
+            'description': 'ID do aluno'
+        },
+        {
+            'name': 'body',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'nome': {'type': 'string'},
+                    'endereco': {'type': 'string'},
+                    'cidade': {'type': 'string'},
+                    'estado': {'type': 'string'},
+                    'cep': {'type': 'string'},
+                    'pais': {'type': 'string'},
+                    'telefone': {'type': 'string'}
+                },
+                'required': ['nome'],
+                'example': {
+                    'nome': 'João Silva Santos',
+                    'endereco': 'Rua das Flores, 456',
+                    'cidade': 'Rio de Janeiro',
+                    'estado': 'RJ',
+                    'cep': '20000-000',
+                    'pais': 'Brasil',
+                    'telefone': '(21) 88888-8888'
+                }
+            }
+        }
+    ],
+    'responses': {
+        200: {'description': 'Aluno atualizado com sucesso'},
+        404: {'description': 'Aluno não encontrado'},
+        400: {'description': 'Erro na requisição'}
+    }
+})
 def update_aluno(aluno_id):
     data = request.get_json()
     conn = create_connection()
@@ -106,6 +244,22 @@ def update_aluno(aluno_id):
         conn.close()
 
 @app.route('/alunos/<string:aluno_id>', methods=['DELETE'])
+@swag_from({
+    'tags': ['Alunos'],
+    'description': 'Remove um aluno pelo ID.',
+    'parameters': [{
+        'name': 'aluno_id',
+        'in': 'path',
+        'required': True,
+        'type': 'string',
+        'description': 'ID do aluno'
+    }],
+    'responses': {
+        200: {'description': 'Aluno deletado com sucesso'},
+        404: {'description': 'Aluno não encontrado'},
+        400: {'description': 'Erro na requisição'}
+    }
+})
 def delete_aluno(aluno_id):
     conn = create_connection()
     cursor = conn.cursor()
